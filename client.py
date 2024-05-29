@@ -4,13 +4,16 @@ from pprint import pprint
 
 SERVER_URL = 'http://localhost:5000'
 
+
 def login(name):
     response = requests.post(f'{SERVER_URL}/login', json={'name': name})
     return response.json()
 
+
 def get_resources():
     response = requests.get(f'{SERVER_URL}/resources')
     return response.json()
+
 
 def block_resource(resource_id, client_name):
     start_time = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
@@ -23,12 +26,14 @@ def block_resource(resource_id, client_name):
     })
     return response.json()
 
+
 def cancel_block(resource_id, reservation_id):
     response = requests.post(f'{SERVER_URL}/cancel_block', json={
         'resource_id': resource_id,
         'reservation_id': reservation_id
     })
     return response.json()
+
 
 def finalize_reservation(resource_id, reservation_id):
     response = requests.post(f'{SERVER_URL}/finalize_reservation', json={
@@ -37,8 +42,30 @@ def finalize_reservation(resource_id, reservation_id):
     })
     return response.json()
 
+
+def get_valid_input(prompt, expected_type=str, min_length=0):
+    while True:
+        value = input(prompt)
+        if not value:
+            print("Input cannot be empty. Please try again.")
+            continue
+
+        if len(value) < min_length:
+            print(f"Input must be at least {min_length} characters long. Please try again.")
+            continue
+
+        try:
+            if expected_type == int:
+                value = int(value)
+            elif expected_type == float:
+                value = float(value)
+            return value
+        except ValueError:
+            print(f"Invalid input. Expected a {expected_type.__name__}. Please try again.")
+
+
 if __name__ == '__main__':
-    name = input('Enter your name: ')
+    name = get_valid_input('Enter your name: ', min_length=5)
     login_response = login(name)
     pprint(login_response)
 
@@ -51,39 +78,39 @@ if __name__ == '__main__':
             print("4. Finalize reservation")
             print("5. Exit")
 
-            choice = input("Enter your choice: ")
+            choice = get_valid_input("Enter your choice: ", int)
 
-            if choice == '1':
+            if choice == 1:
                 resources = get_resources()
                 pprint(resources)
 
-            elif choice == '2':
-                resource_id = input("Enter resource ID: ")
+            elif choice == 2:
+                resource_id = get_valid_input("Enter resource ID: ")
                 block_response = block_resource(resource_id, name)
                 pprint(block_response)
-                # Check the resources again to see if the reservation is made
+
                 resources = get_resources()
                 pprint(resources)
 
-            elif choice == '3':
-                resource_id = input("Enter resource ID: ")
-                reservation_id = input("Enter reservation ID: ")
+            elif choice == 3:
+                resource_id = get_valid_input("Enter resource ID: ")
+                reservation_id = get_valid_input("Enter reservation ID: ")
                 cancel_response = cancel_block(resource_id, reservation_id)
                 pprint(cancel_response)
-                # Check the resources again to see if the reservation is canceled
+
                 resources = get_resources()
                 pprint(resources)
 
-            elif choice == '4':
-                resource_id = input("Enter resource ID: ")
-                reservation_id = input("Enter reservation ID: ")
+            elif choice == 4:
+                resource_id = get_valid_input("Enter resource ID: ")
+                reservation_id = get_valid_input("Enter reservation ID: ")
                 finalize_response = finalize_reservation(resource_id, reservation_id)
                 pprint(finalize_response)
-                # Check the resources again to see if the reservation is finalized
+
                 resources = get_resources()
                 pprint(resources)
 
-            elif choice == '5':
+            elif choice == 5:
                 print("Exiting...")
                 break
 
