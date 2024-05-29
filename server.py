@@ -46,7 +46,6 @@ def block_resource():
         reservation = Reservation(reservation_id, resource_id, client_name, data.get('start_time'), data.get('end_time'))
         resources[resource_id].reservations.append(reservation)
 
-        # Notify all clients
         socketio.emit('resource_blocked', {'resource_id': resource_id, 'reservation': reservation.to_dict()})
         print(f'Resource {resource_id} blocked by {client_name} from {data.get("start_time")} to {data.get("end_time")}')
         return jsonify({'status': 'success', 'reservation_id': reservation_id}), 200
@@ -63,7 +62,6 @@ def cancel_block():
         resource = resources[resource_id]
         resource.reservations = [res for res in resource.reservations if res.reservation_id != reservation_id]
 
-        # Notify all clients
         socketio.emit('block_canceled', {'resource_id': resource_id, 'reservation_id': reservation_id})
         print(f'Reservation {reservation_id} for resource {resource_id} canceled')
         return jsonify({'status': 'success'}), 200
@@ -81,7 +79,6 @@ def finalize_reservation():
             if res.reservation_id == reservation_id:
                 res.status = 'confirmed'
 
-                # Notify all clients
                 socketio.emit('reservation_finalized', {'resource_id': resource_id, 'reservation': res.to_dict()})
                 print(f'Reservation {reservation_id} for resource {resource_id} finalized')
                 return jsonify({'status': 'success'}), 200
@@ -98,8 +95,7 @@ def handle_disconnect():
     print('Client disconnected')
 
 if __name__ == '__main__':
-    # Initialize some resources for demonstration
     resources['1'] = Resource('1', 'Conference Room')
     resources['2'] = Resource('2', 'Projector')
 
-    socketio.run(app, host='0.0.0.0', port=5000)
+    socketio.run(app, host='0.0.0.0', port=5000, allow_unsafe_werkzeug=True)
